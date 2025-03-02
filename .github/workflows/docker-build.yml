@@ -38,18 +38,40 @@ jobs:
       - name: Build and upload images
         run: |
           images='${{ steps.read_config.outputs.config }}'
+          
+          # 打印当前矩阵变量，用于调试
+          echo "Current matrix: name=${{ matrix.name }}, tag=${{ matrix.tag }}"
+          
+          # 只构建当前矩阵指定的镜像
+          echo "Building ${{ matrix.name }}:${{ matrix.tag }}"
+          
+          # 查找对应的 dockerfile
           for img in $(echo "$images" | jq -c '.images[]'); do
             name=$(echo $img | jq -r '.name')
             tag=$(echo $img | jq -r '.tag')
-            dockerfile=$(echo $img | jq -r '.dockerfile')
             
-            echo "Building $name:$tag from $dockerfile"
-            
-            # Build image
-            docker build -t $name:$tag -f $dockerfile .
-            
-            # Save image
-            docker save $name:$tag -o /tmp/${name}_${tag}.tar
+            if [ "$name" == "${{ matrix.name }}" ] && [ "$tag" == "${{ matrix.tag }}" ]; then
+              dockerfile=$(echo $img | jq -r '.dockerfile')
+              echo "Found dockerfile: $dockerfile for $name:$tag"
+              
+              # Build image
+              docker build -t $name:$tag -f $dockerfile .
+              
+              # Save image
+              echo "Saving image to /tmp/${name}_${tag}.tar"
+              docker save $name:$tag -o /tmp/${name}_${tag}.tar
+              
+              # 验证文件是否存在
+              ls -la /tmp/
+              if [ -f "/tmp/${name}_${tag}.tar" ]; then
+                echo "File exists: /tmp/${name}_${tag}.tar"
+                echo "File size: $(du -h /tmp/${name}_${tag}.tar | cut -f1)"
+              else
+                echo "ERROR: File not found: /tmp/${name}_${tag}.tar"
+              fi
+              
+              break
+            fi
           done
           
       - name: Upload artifacts
@@ -57,4 +79,5 @@ jobs:
         with:
           name: ${{ matrix.name }}_${{ matrix.tag }}
           path: /tmp/${{ matrix.name }}_${{ matrix.tag }}.tar
+          if-no-files-found: error  # 如果找不到文件则报错
           retention-days: 1 
