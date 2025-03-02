@@ -80,5 +80,6 @@ jobs:
         with:
           name: ${{ matrix.name }}_${{ matrix.tag }}
           path: /tmp/${{ matrix.name }}_${{ matrix.tag }}.tar
+          overwrite: true
           if-no-files-found: error  # 如果找不到文件则报错
           retention-days: 1 
