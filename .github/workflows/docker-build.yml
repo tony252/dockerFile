@@ -39,6 +39,9 @@ jobs:
         run: |
           images='${{ steps.read_config.outputs.config }}'
           
+          # 打印当前目录
+          echo "Current directory: $(pwd)"
+          
           # 打印当前矩阵变量，用于调试
           echo "Current matrix: name=${{ matrix.name }}, tag=${{ matrix.tag }}"
           
@@ -46,14 +49,14 @@ jobs:
           echo "Building ${{ matrix.name }}:${{ matrix.tag }}"
           
           # 获取当前镜像的Dockerfile路径
-          dockerfile_path=$(echo "$images" | jq -r '.images[] | select(.name == "${{ matrix.name }}" and .tag == "${{ matrix.tag }}") | .dockerfile')
+          dockerfile_path=$(echo "$images" | jq -r --arg name "${{ matrix.name }}" --arg tag "${{ matrix.tag }}" '.images[] | select(.name == $name and .tag == $tag) | .dockerfile')
           
           echo "Using Dockerfile at: $dockerfile_path"
           
           # 检查Dockerfile是否存在
           if [ ! -f "$dockerfile_path" ]; then
             echo "ERROR: Dockerfile not found at $dockerfile_path"
-            ls -la $(dirname "$dockerfile_path")
+            ls -la $(dirname "$dockerfile_path" || echo ".")
             exit 1
           fi
           
