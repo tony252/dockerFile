@@ -41,6 +41,8 @@ jobs:
           
           # 打印当前目录
           echo "Current directory: $(pwd)"
+          # 打印当前目录下的文件
+          ls -la
           
           # 打印当前矩阵变量，用于调试
           echo "Current matrix: name=${{ matrix.name }}, tag=${{ matrix.tag }}"
