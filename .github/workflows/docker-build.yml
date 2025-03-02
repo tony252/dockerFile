@@ -45,12 +45,9 @@ jobs:
           # 只构建当前矩阵指定的镜像
           echo "Building ${{ matrix.name }}:${{ matrix.tag }}"
           
-          # 直接查询对应的 dockerfile
-          dockerfile=$(echo "$images" | jq -r --arg name "${{ matrix.name }}" --arg tag "${{ matrix.tag }}" '.images[] | select(.name == $name and .tag == $tag) | .dockerfile')
-          echo "Found dockerfile: $dockerfile for ${{ matrix.name }}:${{ matrix.tag }}"
           
           # Build image
-          docker build -t ${{ matrix.name }}:${{ matrix.tag }} -f ${{ matrix.dockerfile }}/Dockerfile .
+          docker build -t ${{ matrix.name }}:${{ matrix.tag }}  .
           
           # Save image
           echo "Saving image to /tmp/${{ matrix.name }}_${{ matrix.tag }}.tar"
