@@ -42,7 +42,7 @@ jobs:
           # 打印当前目录
           echo "Current directory: $(pwd)"
           # 打印当前目录下的文件
-          ls -la
+          ls 
           
           # 打印当前矩阵变量，用于调试
           echo "Current matrix: name=${{ matrix.name }}, tag=${{ matrix.tag }}"
@@ -50,9 +50,8 @@ jobs:
           # 只构建当前矩阵指定的镜像
           echo "Building ${{ matrix.name }}:${{ matrix.tag }}"
           
-          # 获取当前镜像的Dockerfile路径
-          dockerfile_path=$(echo "$images" | jq -r --arg name "${{ matrix.name }}" --arg tag "${{ matrix.tag }}" '.images[] | select(.name == $name and .tag == $tag) | .dockerfile')
-          
+          # 获取当前目录下的Dockerfile文件
+          dockerfile_path=$(find . -name Dockerfile)
           echo "Using Dockerfile at: $dockerfile_path"
           
           # 检查Dockerfile是否存在
