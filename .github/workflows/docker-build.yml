@@ -1,0 +1,50 @@
+name: Build Docker Images
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+        
+      - name: Read image config
+        id: read_config
+        run: echo "config=$(cat .github/docker-images.json | jq -c)" >> $GITHUB_OUTPUT
+        
+      - name: Build and upload images
+        run: |
+          images='${{ steps.read_config.outputs.config }}'
+          for img in $(echo "$images" | jq -c '.images[]'); do
+            name=$(echo $img | jq -r '.name')
+            tag=$(echo $img | jq -r '.tag')
+            dockerfile=$(echo $img | jq -r '.dockerfile')
+            
+            echo "Building $name:$tag from $dockerfile"
+            
+            # Build image
+            docker build -t $name:$tag -f $dockerfile .
+            
+            # Save image
+            docker save $name:$tag -o /tmp/${name}_${tag}.tar
+            
+            # Upload artifact
+            echo "Uploading artifact ${name}_${tag}"
+            mkdir -p /tmp/artifacts/${name}_${tag}
+            cp /tmp/${name}_${tag}.tar /tmp/artifacts/${name}_${tag}/
+          done
+          
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          path: /tmp/artifacts/*/*.tar
+          retention-days: 1 

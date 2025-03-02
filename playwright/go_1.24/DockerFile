@@ -1,0 +1,26 @@
+FROM golang:1.24-slim
+
+# 设置时区为上海
+ENV TZ=Asia/Shanghai
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    tzdata ca-certificates \
+    # Playwright 依赖
+    chromium \
+    fonts-freefont-ttf \
+    libfreetype6 \
+    libharfbuzz0b \
+    libnss3 \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+WORKDIR /app
+
+# 安装playwright
+RUN go install github.com/playwright-community/playwright-go/cmd/playwright@latest && \
+    # 使用系统安装的 Chromium
+    PLAYWRIGHT_BROWSERS_PATH=/usr/bin/chromium playwright install --with-deps
+
+# 设置环境变量指向系统 Chromium
+ENV PLAYWRIGHT_BROWSERS_PATH=/usr/bin/chromium
