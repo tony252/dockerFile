@@ -27,6 +27,8 @@ jobs:
     strategy:
       matrix: ${{ fromJson(needs.prepare.outputs.matrix) }}
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -35,47 +37,19 @@ jobs:
         id: read_config
         run: echo "config=$(cat .github/docker-images.json | jq -c)" >> $GITHUB_OUTPUT
         
-      - name: Build and upload images
+      - name: Build images
         run: |
-          images='${{ steps.read_config.outputs.config }}'
-          
-          # 打印当前目录
-          echo "Current directory: $(pwd)"
-          # 打印当前目录下的文件
-          ls 
-          
-          # 打印当前矩阵变量，用于调试
-          echo "Current matrix: name=${{ matrix.name }}, tag=${{ matrix.tag }}"
-          
-          # 只构建当前矩阵指定的镜像
-          echo "Building ${{ matrix.name }}:${{ matrix.tag }}"
-          
-          # 获取当前目录下的Dockerfile文件
-          dockerfile_path=$(find . -name Dockerfile)
-          echo "Using Dockerfile at: $dockerfile_path"
-          
           # 检查Dockerfile是否存在
-          if [ ! -f "$dockerfile_path" ]; then
-            echo "ERROR: Dockerfile not found at $dockerfile_path"
-            ls -la $(dirname "$dockerfile_path" || echo ".")
+          if [ ! -f "${{ matrix.dockerfile }}" ]; then
+            echo "错误: Dockerfile不存在: ${{ matrix.dockerfile }}"
             exit 1
           fi
           
-          # Build image with specified Dockerfile
-          docker build -t ${{ matrix.name }}:${{ matrix.tag }} -f "$dockerfile_path" $(dirname "$dockerfile_path")
+          # 构建Docker镜像
+          docker build -t ${{ matrix.name }}:${{ matrix.tag }} -f ${{ matrix.dockerfile }} .
           
-          # Save image
-          echo "Saving image to /tmp/${{ matrix.name }}_${{ matrix.tag }}.tar"
-          docker save ${{ matrix.name }}:${{ matrix.tag }} -o /tmp/${{ matrix.name }}_${{ matrix.tag }}.tar
-          
-          # 验证文件是否存在
-          ls -la /tmp/
-          if [ -f "/tmp/${{ matrix.name }}_${{ matrix.tag }}.tar" ]; then
-            echo "File exists: /tmp/${{ matrix.name }}_${{ matrix.tag }}.tar"
-            echo "File size: $(du -h /tmp/${{ matrix.name }}_${{ matrix.tag }}.tar | cut -f1)"
-          else
-            echo "ERROR: File not found: /tmp/${{ matrix.name }}_${{ matrix.tag }}.tar"
-          fi
+          # 将镜像保存为tar文件
+          docker save ${{ matrix.name }}:${{ matrix.tag }} > /tmp/${{ matrix.name }}_${{ matrix.tag }}.tar
           
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
