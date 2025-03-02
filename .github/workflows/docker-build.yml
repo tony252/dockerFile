@@ -50,7 +50,7 @@ jobs:
           echo "Found dockerfile: $dockerfile for ${{ matrix.name }}:${{ matrix.tag }}"
           
           # Build image
-          docker build -t ${{ matrix.name }}:${{ matrix.tag }} -f ${{ matrix.dockerfile }} .
+          docker build -t ${{ matrix.name }}:${{ matrix.tag }} -f ${{ matrix.dockerfile }}/Dockerfile .
           
           # Save image
           echo "Saving image to /tmp/${{ matrix.name }}_${{ matrix.tag }}.tar"
