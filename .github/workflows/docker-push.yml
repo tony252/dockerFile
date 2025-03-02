@@ -33,7 +33,8 @@ jobs:
       - name: Download image artifact
         uses: actions/download-artifact@v4
         with:
-          path: /tmp/${{ matrix.name }}_${{ matrix.tag }}.tar
+          name: ${{ matrix.name }}_${{ matrix.tag }}
+          path: /tmp
 
       - name: Load Docker image
         run: |
