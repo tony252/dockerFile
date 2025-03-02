@@ -34,7 +34,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ matrix.name }}_${{ matrix.tag }}
-          path: /tmp/artifacts
+          path: /tmp
 
       - name: Load Docker image
         run: |
