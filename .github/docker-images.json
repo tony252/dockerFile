@@ -1,12 +1,12 @@
 {
   "images": [
     {
-      "name": "playwright-go-1.24",
+      "name": "playwright-go",
       "tag": "1.24",
       "dockerfile": "playwright/go_1.24/DockerFile"
     },
     {
-      "name": "maven-jdk-1.8",
+      "name": "maven3.5-jdk8",
       "tag": "latest",
       "dockerfile": "maven/Dockerfile"
     }
