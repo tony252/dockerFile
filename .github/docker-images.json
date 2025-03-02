@@ -3,7 +3,7 @@
     {
       "name": "playwright-go",
       "tag": "1.24",
-      "dockerfile": "playwright/go_1.24/DockerFile"
+      "dockerfile": "playwright/go_1.24/Dockerfile"
     },
     {
       "name": "maven3.5-jdk8",
