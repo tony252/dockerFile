@@ -1,30 +1,25 @@
-FROM debian:stretch
-MAINTAINER Anders Åslund <anders.aslund@teknoir.se>
+ARG BASE_IMAGE=ubuntu:jammy
+FROM ${BASE_IMAGE} as builder
 
-RUN apt-get update && apt-get -y upgrade && \
-    apt-get install -y wget libpcre3-dev build-essential libssl-dev zlib1g-dev && \
-    rm -rf /var/lib/apt/lists/*
+ARG NGINX_VERSION=1.26.1
+ENV DEBIAND_FRONTEND=noninteractive
 
-WORKDIR /opt
+RUN apt-get update \
+ && apt-get install -y wget build-essential libpcre3 libpcre3-dev zlib1g zlib1g-dev libssl-dev libgd-dev libxml2 libxml2-dev uuid-dev unzip
 
-RUN wget http://nginx.org/download/nginx-1.23.1.tar.gz && \
-    tar -zxvf nginx-1.*.tar.gz && \
-    cd nginx-1.* && \
-    ./configure --prefix=/opt/nginx --user=nginx --group=nginx --with-http_ssl_module --with-ipv6 --with-threads --with-stream --with-stream_ssl_module && \
-    make && make install && \
-    cd .. && rm -rf nginx-1.*
+RUN wget https://nginx.org/download/nginx-$NGINX_VERSION.tar.gz \
+ && tar xvfz nginx-$NGINX_VERSION.tar.gz \
+ && rm -f nginx-$NGINX_VERSION.tar.get \
+ && mv nginx-$NGINX_VERSION nginx \
+ && wget -O nginx_upstream_check_module-master.zip  https://codeload.github.com/yaoweibin/nginx_upstream_check_module/zip/refs/heads/master \
+ && unzip nginx_upstream_check_module-master.zip  \
+ && mv nginx_upstream_check_module-master /nginx_upstream_check_module
 
-# nginx user
-RUN adduser --system --no-create-home --disabled-login --disabled-password --group nginx
-
-# config dirs
-RUN mkdir /opt/nginx/http.conf.d && mkdir /opt/nginx/stream.conf.d
-
-ADD nginx.conf /opt/nginx/conf/nginx.conf
-ADD zero_downtime_reload.sh /opt/nginx/sbin/zero_downtime_reload.sh
-
-WORKDIR /
-
-EXPOSE 80 443
-
-CMD ["/opt/nginx/sbin/nginx", "-g", "daemon off;"]
+RUN cd /nginx \
+ && patch -p1 < /nginx_upstream_check_module/check_1.20.1+.patch \
+ && ./configure \
+    --prefix=/etc/nginx \
+    --sbin-path=/usr/sbin/nginx \
+    --modules-path=/etc/nginx/modules \
+    --conf-path=/etc/nginx/nginx.conf \
+    --error-log-path=/var/log/nginx/error.log 
