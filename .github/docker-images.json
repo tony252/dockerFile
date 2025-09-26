@@ -2,7 +2,7 @@
   "images": [
     {
       "name": "nginx-stream",
-      "tag": "1.26.2",
+      "tag": "latest",
       "dockerfile": "nginx/Dockerfile"
     }
   ]
