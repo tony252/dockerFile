@@ -84,33 +84,33 @@ jobs:
           if-no-files-found: error  # 如果找不到文件则报错
           retention-days: 1 
           
-  push-to-dockerhub:
-    needs: [prepare, build]
-    runs-on: ubuntu-latest
-    strategy:
-      matrix: ${{ fromJson(needs.prepare.outputs.matrix) }}
-    steps:
-      - name: Download image artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ matrix.name }}_${{ matrix.tag }}
-          path: /tmp
-          
-      - name: Load Docker image
-        run: |
-          ls -la /tmp
-          docker load --input /tmp/${{ matrix.name }}_${{ matrix.tag }}.tar
-          docker tag ${{ matrix.name }}:${{ matrix.tag }} ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.name }}:${{ matrix.tag }}
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          registry: docker.io
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
-
-      - name: Push to DockerHub
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.name }}:${{ matrix.tag }}
+#  push-to-dockerhub:
+#    needs: [prepare, build]
+#    runs-on: ubuntu-latest
+#    strategy:
+#      matrix: ${{ fromJson(needs.prepare.outputs.matrix) }}
+#    steps:
+#      - name: Download image artifact
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: ${{ matrix.name }}_${{ matrix.tag }}
+#          path: /tmp
+#
+#      - name: Load Docker image
+#        run: |
+#          ls -la /tmp
+#          docker load --input /tmp/${{ matrix.name }}_${{ matrix.tag }}.tar
+#          docker tag ${{ matrix.name }}:${{ matrix.tag }} ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.name }}:${{ matrix.tag }}
+#
+#      - name: Login to Docker Hub
+#        uses: docker/login-action@v2
+#        with:
+#          registry: docker.io
+#          username: ${{ secrets.DOCKERHUB_USERNAME }}
+#          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+#
+#      - name: Push to DockerHub
+#        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/${{ matrix.name }}:${{ matrix.tag }}
 
   push-to-aliyun:
     needs: [prepare, build]
